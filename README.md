@@ -1,4 +1,4 @@
-# ⚡ Aura-26: Stadium Pulse & Crowd Flow AI Assistant
+# ⚡ Stadium Pulse AI: Context-Aware World Cup 2026 Operations Assistant
 
 **FIFA World Cup 2026 Stadium Operations & Crowd Management Solution**
 
@@ -7,14 +7,14 @@
 ## 🏟️ Executive Summary & Chosen Vertical
 **Chosen Vertical:** **Crowd Management & Operational Intelligence**
 
-**Aura-26 Stadium Pulse** is a context-aware, autonomous GenAI decision-support engine engineered specifically for FIFA World Cup 2026 matchday operations. As mega-venues like MetLife Stadium (NY/NJ), Azteca (Mexico City), and BC Place (Vancouver) prepare to host unprecedented crowds exceeding 80,000 spectators per match, traditional static turnstile alerts and hardcoded crowd rules fail when confronted with sudden bottlenecks, extreme weather shifts, or emergency corridor obstructions.
+**Stadium Pulse AI** (powered by the *Aura-26* reasoning core) is a context-aware, autonomous GenAI decision-support engine engineered specifically for FIFA World Cup 2026 matchday operations. As mega-venues like MetLife Stadium (NY/NJ), Azteca (Mexico City), and BC Place (Vancouver) prepare to host unprecedented crowds exceeding 80,000 spectators per match, traditional static turnstile alerts and hardcoded crowd rules fail when confronted with sudden bottlenecks, extreme weather shifts, or emergency corridor obstructions.
 
-Aura-26 replaces rigid static rules with an **intelligent, context-driven GenAI reasoning core** that dynamically synthesizes real-time concourse telemetry into prioritized, multi-role operational plans, instant LED digital signage updates, and localized multilingual public address broadcasts.
+Stadium Pulse AI replaces rigid static rules with an **intelligent, context-driven GenAI reasoning core** that dynamically synthesizes real-time concourse telemetry into prioritized, multi-role operational plans, instant LED digital signage updates, and localized multilingual public address broadcasts.
 
 ---
 
 ## 🧠 Core GenAI Logic & Approach
-Aura-26 does not act as a generic conversational chatbot. Instead, it operates as a deterministic decision engine that ingests a high-dimensional **User & Environmental Context Vector** before synthesizing actions:
+Stadium Pulse AI does not act as a generic conversational chatbot. Instead, it operates as a deterministic decision engine that ingests a high-dimensional **User & Environmental Context Vector** before synthesizing actions:
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -64,7 +64,7 @@ Aura-26 does not act as a generic conversational chatbot. Instead, it operates a
 ---
 
 ## ⚙️ How It Works: Multi-Layer Resilience & Fallback Engine
-To ensure absolute zero-downtime reliability during high-pressure World Cup matches, Aura-26 employs a **3-Tier Execution Architecture**:
+To ensure absolute zero-downtime reliability during high-pressure World Cup matches, Stadium Pulse AI employs a **3-Tier Execution Architecture**:
 
 1. **Primary Tier (Structured GenAI SDK):** Uses the official Google GenAI SDK (`google-genai`) with native `response_schema=CrowdActionPlanResponse` configuration, forcing Gemini 2.5 models to return verified, zero-hallucination JSON payloads.
 2. **Secondary Tier (Regex JSON Cleaning):** If model tier variations wrap output in markdown code fences (` ```json `), the service automatically extracts and validates the payload cleanly against our Pydantic schema.
@@ -81,8 +81,8 @@ To ensure absolute zero-downtime reliability during high-pressure World Cup matc
 ### 1. Environment & Dependency Setup
 ```bash
 # Clone the repository
-git clone <repository_url>
-cd challenge4
+git clone git@github.com:abhayjoshi201/stadium-pulse-ai.git
+cd stadium-pulse-ai
 
 # Create virtual environment (strictly ignored by .gitignore)
 python3 -m venv .venv
@@ -111,7 +111,7 @@ python3 -m app.main
 ---
 
 ## 🧪 Verification & Unit Testing
-Aura-26 includes a comprehensive automated test suite (`pytest`) verifying schema boundaries, spatial math formulas, prompt construction, and REST route integrity.
+Stadium Pulse AI includes a comprehensive automated test suite (`pytest`) verifying schema boundaries, spatial math formulas, prompt construction, and REST route integrity.
 
 To execute the test suite:
 ```bash
@@ -128,7 +128,7 @@ python3 -m pytest tests/ -v
 
 ## 📦 Project Structure
 ```text
-challenge4/
+stadium-pulse-ai/
 ├── .env.example              # Clean credentials template (zero hardcoded secrets)
 ├── .gitignore                # Strict exclusion rules (<10MB repository guarantee)
 ├── README.md                 # Comprehensive project documentation
@@ -163,7 +163,7 @@ challenge4/
 Every module, class, and critical function in the codebase includes detailed inline `# WHY:` explanations documenting the exact engineering rationale behind design choices (not just what the code does). Variables are explicitly named without obfuscation.
 
 ### Zero-Tolerance Constraints Met
-*   **Repository Size (< 10 MB):** Total repository footprint is under **1 MB** (~696 KB). Heavy assets, `.venv`, `node_modules`, and cache folders are strictly blocked by `.gitignore`.
+*   **Repository Size (< 10 MB):** Total repository footprint is under **1 MB** (~876 KB). Heavy assets, `.venv`, `node_modules`, and cache folders are strictly blocked by `.gitignore`.
 *   **Single Branch Integrity:** All commits and development cycles are executed exclusively on the primary `main` branch.
 *   **Security & Secrets:** All credentials are loaded securely via environment variables (`.env`). No API keys exist in source code.
 *   **Accessibility:** The frontend command center UI features full `ARIA` roles (`role="main"`, `aria-live="polite"`), high-contrast visual status badges, and keyboard navigation shortcuts (`Ctrl+Enter` to submit, `Esc` to reset triage view).
