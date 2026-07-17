@@ -72,6 +72,24 @@ To ensure absolute zero-downtime reliability during high-pressure World Cup matc
 
 ---
 
+## 🏗️ Hybrid Strategic & State-Controlled Architecture
+Stadium Pulse AI is built and maintained under a strict **Hybrid Architecture** that nests an **XML State-Machine Engine** inside a **Markdown 3-Phase Strategic Roadmap**, enforcing bulletproof engineering discipline during rapid delivery:
+
+### 1. Macro-Trajectory: Markdown 3-Phase Strategic Roadmap
+*   **Phase 1: Architectural Foundation**: Enforces directory structure, `.gitignore` sanitation against bloat (`.venv/`, `__pycache__/`, `*.db`), and initial payload checks (< 1 MB).
+*   **Phase 2: Core Implementation**: Implements the `SpatialContextEngine` crush math algorithms and `CrowdIntelligenceService` multi-role reasoning, maintaining 100% unit test coverage.
+*   **Phase 3: Audit & Submission**: Executes mandatory size audits, `.gitignore` verification, and test suite execution prior to submission.
+
+### 2. Core Control Engine: XML Turn-Header & State Gates
+*   **XML Turn-Header Enforcement**: Every execution turn begins with an `<agent_status>` XML block tracking the active phase, current state, repo footprint in MB, remaining Git pushes (`git_pushes_used <= 3`), and target branch (`main`).
+*   **Hard XML Checkpoint Gates (`GIT_PUSH_CHECKPOINT`)**: Un-bypassable state locks freeze execution before `git commit` or `git push` until three strict checks pass: (`du -sh` payload size, `.gitignore` exclusions, and `pytest`).
+*   **Anti-Thrashing Clause**: Prevents state loops during debugging by mandating a transition from `DEBUGGING` to `USER_CONSULTATION` if an error persists across more than 2 consecutive turns.
+
+### 3. Pydantic V2 Modernization (`ConfigDict`)
+*   The entire model (`schemas.py`) and configuration (`config.py`) stack is modernized to Pydantic V2 using `ConfigDict` and `SettingsConfigDict`, guaranteeing type safety and zero deprecation warnings on Python 3.13+ runtimes.
+
+---
+
 ## 🚀 Quick Setup & Installation
 
 ### Prerequisites
