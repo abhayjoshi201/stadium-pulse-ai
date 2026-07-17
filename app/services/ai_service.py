@@ -1,5 +1,5 @@
 """
-Aura-26 GenAI Crowd Intelligence Service Layer.
+Stadium Pulse AI GenAI Crowd Intelligence Service Layer.
 
 WHY: Abstracting GenAI interaction into a dedicated async service class decouples prompt engineering
 and API call retry logic from the REST controllers. It also provides multi-layer fallback resilience,
@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
 from app.core.config import get_settings
-from app.core.prompts import SYSTEM_INSTRUCTION_AURA26, build_crowd_intelligence_prompt
+from app.core.prompts import SYSTEM_INSTRUCTION_STADIUM_PULSE, build_crowd_intelligence_prompt
 from app.services.context_engine import SpatialContextEngine
 from app.models.schemas import (
     CrowdContextRequest,
@@ -77,7 +77,7 @@ class CrowdIntelligenceService:
             response = self.client.models.generate_content(
                 model=self.settings.ai_model_name,
                 contents=[
-                    types.Part.from_text(text=SYSTEM_INSTRUCTION_AURA26),
+                    types.Part.from_text(text=SYSTEM_INSTRUCTION_STADIUM_PULSE),
                     types.Part.from_text(text=prompt_payload)
                 ],
                 config=types.GenerateContentConfig(

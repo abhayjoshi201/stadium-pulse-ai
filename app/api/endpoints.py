@@ -1,5 +1,5 @@
 """
-Aura-26 Stadium Pulse API Routers & Endpoints.
+Stadium Pulse AI API Routers & Endpoints.
 
 WHY: Exposing our context-aware GenAI engine and spatial enrichment algorithms via clean REST endpoints
 allows modular integration with stadium concourse displays, mobile steward tablet apps, and central command dashboards.
@@ -116,7 +116,7 @@ async def health_check(
     is_ai_live = service.client is not None and bool(service.settings.gemini_api_key)
     return {
         "status": "ONLINE",
-        "stadium_pulse_engine": "Aura-26 v1.0.0",
+        "stadium_pulse_engine": "Stadium Pulse AI v1.0.0",
         "spatial_context_engine": "ACTIVE",
         "genai_live_mode": is_ai_live,
         "default_stadium": service.settings.default_stadium_id,

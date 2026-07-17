@@ -1,5 +1,5 @@
 /**
- * Aura-26 Stadium Pulse Operations Dashboard Client Script.
+ * Stadium Pulse AI Operations Dashboard Client Script.
  * 
  * WHY: Vanilla async JavaScript ensures zero frontend bundle overhead while providing
  * reactive, real-time command center telemetry injection, keyboard shortcuts for accessibility,

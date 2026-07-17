@@ -1,5 +1,5 @@
 # =========================================================
-# AURA-26 STADIUM PULSE DEPENDENCIES (Lightweight Stack)
+# STADIUM PULSE AI DEPENDENCIES (Lightweight Stack)
 # =========================================================
 
 # High-performance async web framework

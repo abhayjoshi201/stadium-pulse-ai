@@ -1,5 +1,5 @@
 """
-Aura-26 Stadium Pulse Main Application Entrypoint.
+Stadium Pulse AI Main Application Entrypoint.
 
 WHY: Centralized FastAPI app initialization with CORS middleware and static asset mounting
 ensures a single, lightweight binary entrypoint (< 1MB total codebase) capable of serving
@@ -20,7 +20,7 @@ settings = get_settings()
 
 # Initialize high-performance FastAPI application
 app = FastAPI(
-    title="Aura-26 Stadium Pulse API",
+    title="Stadium Pulse AI API",
     description="Context-Aware GenAI Crowd Flow & Operations Assistant for FIFA World Cup 2026",
     version="1.0.0",
     docs_url="/docs",

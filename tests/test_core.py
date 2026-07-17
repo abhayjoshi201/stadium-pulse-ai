@@ -1,8 +1,8 @@
 """
-Aura-26 Stadium Pulse Comprehensive Test Suite.
+Stadium Pulse AI Comprehensive Test Suite.
 
 WHY: Rigorous unit and integration testing verifies that our spatial enrichment algorithms,
-Pydantic data schemas, GenAI prompt builders, and REST endpoints perform deterministically
+pydantic data schemas, GenAI prompt builders, and REST endpoints perform deterministically
 under normal and emergency World Cup matchday conditions.
 """
 
@@ -135,7 +135,7 @@ def test_api_health_check_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ONLINE"
-    assert data["stadium_pulse_engine"] == "Aura-26 v1.0.0"
+    assert data["stadium_pulse_engine"] == "Stadium Pulse AI v1.0.0"
     assert data["spatial_context_engine"] == "ACTIVE"
 
 

@@ -1,5 +1,5 @@
 """
-Pydantic Data Schemas for Aura-26 Stadium Pulse.
+Pydantic Data Schemas for Stadium Pulse AI.
 
 WHY: Strict schema enforcement ensures that every request entering the system and every JSON payload
 emitted by the GenAI engine adheres strictly to contract definitions. This eliminates AI hallucinations,

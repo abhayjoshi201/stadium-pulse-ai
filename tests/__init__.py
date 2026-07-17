@@ -1,3 +1,3 @@
 """
-Test suite for Aura-26 Stadium Pulse core logic, context engine, and API endpoints.
+Test suite for Stadium Pulse AI core logic, context engine, and API endpoints.
 """

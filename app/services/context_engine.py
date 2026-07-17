@@ -1,5 +1,5 @@
 """
-Aura-26 Spatial & Contextual Enrichment Engine.
+Stadium Pulse AI Spatial & Contextual Enrichment Engine.
 
 WHY: Pre-processing and enriching raw telemetry before LLM prompt injection ensures that
 spatial rules, capacity thresholds, and crush-risk algorithms are computed deterministically.

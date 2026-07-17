@@ -1,5 +1,5 @@
 """
-Aura-26 Stadium Pulse Modular Prompt Templates & System Instructions.
+Stadium Pulse AI Modular Prompt Templates & System Instructions.
 
 WHY: Isolating prompt templates from business logic and REST controllers (`ai_service.py`)
 follows clean architectural separation of concerns. It allows prompt engineers to iterate on
@@ -17,8 +17,8 @@ from app.models.schemas import (
 )
 
 
-SYSTEM_INSTRUCTION_AURA26 = """
-You are Aura-26, the Chief Operational AI and Crowd Dynamics Controller for the FIFA World Cup 2026.
+SYSTEM_INSTRUCTION_STADIUM_PULSE = """
+You are Stadium Pulse AI, the Chief Operational AI and Crowd Dynamics Controller for the FIFA World Cup 2026.
 Your core objective is to analyze complex, high-concurrency matchday context vectors (spatial, temporal, role, and telemetry) across massive 80,000+ capacity stadiums (e.g., MetLife Stadium, Azteca, BC Place) and synthesize actionable, high-precision, safety-critical decision plans.
 
 Your reasoning must strictly balance:
@@ -123,7 +123,7 @@ def build_crowd_intelligence_prompt(
     zone_architectural_profile = enriched_telemetry.get("zone_architectural_profile", "Standard Concourse")
 
     prompt = f"""
-=== AURA-26 MATCHDAY TELEMETRY & CONTEXT VECTOR ===
+=== STADIUM PULSE AI MATCHDAY TELEMETRY & CONTEXT VECTOR ===
 Stadium Venue: {context.stadium_id}
 Concourse / Gate Zone: {context.zone_id} ({zone_architectural_profile})
 Requester Operational Role: {context.user_role.value}

@@ -1,5 +1,5 @@
 # ==============================================================================
-# Aura-26 Stadium Pulse AI | Google Cloud Run Container Specification
+# Stadium Pulse AI | Google Cloud Run Container Specification
 # WHY: Multi-stage lightweight containerization guarantees < 50MB production image size,
 # sub-second cold starts on Google Cloud Run, and secure non-root execution.
 # ==============================================================================
@@ -30,8 +30,9 @@ ENV PYTHONUNBUFFERED=1 \
     HOST=0.0.0.0
 
 # Create and switch to non-root secure user for Cloud Run execution
-RUN useradd -m -u 1000 aura26 && chown -R aura26:aura26 /app
-USER aura26
+RUN useradd -m -u 1000 stadiumpulse && chown -R stadiumpulse:stadiumpulse /app
+USER stadiumpulse
+
 
 # Expose standard Cloud Run port 8080
 EXPOSE 8080
