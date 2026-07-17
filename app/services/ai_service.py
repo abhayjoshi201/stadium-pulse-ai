@@ -8,9 +8,10 @@ for high-availability World Cup stadium operations.
 """
 
 import json
+import logging
 import re
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from app.core.config import get_settings
 from app.core.prompts import SYSTEM_INSTRUCTION_STADIUM_PULSE, build_crowd_intelligence_prompt
@@ -23,6 +24,9 @@ from app.models.schemas import (
     PublicAddressScript,
     IncidentType,
 )
+
+# Initialize module logger
+logger = logging.getLogger(__name__)
 
 # WHY: Attempt to import Google GenAI SDK cleanly without breaking local dev if unconfigured.
 try:
@@ -39,7 +43,11 @@ class CrowdIntelligenceService:
     interacting with Google Gemini GenAI models, and guaranteeing type-safe structured responses.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initializes the service with validated application settings and instantiates the Gemini SDK client if available.
+        WHY: Fails open to fallback reasoning if credentials are unconfigured or SDK missing.
+        """
         self.settings = get_settings()
         self.client: Optional[genai.Client] = None
         
@@ -49,13 +57,20 @@ class CrowdIntelligenceService:
                 self.client = genai.Client(api_key=self.settings.gemini_api_key)
             except Exception as e:
                 # WHY: Log error during initialization without hard crashing server boot.
-                print(f"[WARN] Failed to initialize Google GenAI Client: {e}")
+                logger.warning(f"Failed to initialize Google GenAI Client: {e}")
 
     async def generate_crowd_action_plan(
         self, context: CrowdContextRequest
     ) -> CrowdActionPlanResponse:
         """
         Main entry point for generating a structured crowd action plan from user & stadium context.
+        
+        Args:
+            context (CrowdContextRequest): The multi-dimensional temporal, spatial, role, and sensor input vector.
+            
+        Returns:
+            CrowdActionPlanResponse: Validated tactical directives, LED signage payload, and multilingual PA scripts.
+            
         WHY: Enriches raw telemetry with spatial index metrics before calling external LLMs or fallback logic.
         """
         # Step 1: Pre-process and enrich context vector via Spatial Engine
@@ -93,7 +108,7 @@ class CrowdIntelligenceService:
 
         except Exception as primary_error:
             # WHY: If structured generation fails (e.g. due to model tier differences), attempt clean text fallback.
-            print(f"[WARN] Primary structured GenAI generation failed ({primary_error}). Attempting secondary JSON parsing...")
+            logger.warning(f"Primary structured GenAI generation failed ({primary_error}). Attempting secondary JSON parsing...")
             try:
                 raw_response = self.client.models.generate_content(
                     model=self.settings.ai_model_name,
@@ -103,7 +118,7 @@ class CrowdIntelligenceService:
                 cleaned_json_text = self._extract_clean_json(raw_response.text)
                 return CrowdActionPlanResponse.model_validate_json(cleaned_json_text)
             except Exception as secondary_error:
-                print(f"[ERROR] Secondary GenAI parsing failure: {secondary_error}")
+                logger.error(f"Secondary GenAI parsing failure: {secondary_error}")
                 return self._fallback_deterministic_reasoning(
                     context, 
                     enriched_telemetry, 

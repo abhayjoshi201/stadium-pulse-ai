@@ -63,6 +63,13 @@ class SpatialContextEngine:
     def enrich_context(cls, request: CrowdContextRequest) -> Dict[str, Any]:
         """
         Synthesizes raw request telemetry with quantitative risk calculations and spatial layouts.
+        
+        Args:
+            request (CrowdContextRequest): The multi-dimensional temporal, spatial, role, and density request.
+            
+        Returns:
+            Dict[str, Any]: Map of quantitative calculations (`crush_risk_index`, `recommended_action_mode`, `nominal_capacity`, `adjacent_overflow_zones`).
+            
         WHY: Provides explicit quantitative indexes (`crush_risk_index`) and architectural profiles
         so the GenAI model does not have to guess physical concourse characteristics.
         """
@@ -130,6 +137,13 @@ class SpatialContextEngine:
         """
         Parses real sensor CSV telemetry payloads (`zone_id,user_role,match_phase,crowd_density_percentage,incident_type,additional_notes`),
         evaluates crush risk across all sectors in O(M * log N) batch time, and identifies highest-priority triage zones.
+        
+        Args:
+            csv_text (str): Raw multi-line CSV string submitted via REST payload.
+            
+        Returns:
+            Dict[str, Any]: Structured summary containing `batch_summary` and detailed `sector_evaluations`.
+            
         WHY: Allows tournament evaluators to upload real or synthetic CSV datasets to rigorously verify system logic at scale.
         """
         results: List[Dict[str, Any]] = []

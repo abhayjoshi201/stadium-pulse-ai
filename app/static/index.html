@@ -32,14 +32,14 @@
         <section class="panel telemetry-panel" aria-labelledby="telemetryTitle">
             <div class="panel-header">
                 <h2 id="telemetryTitle">⚡ Telemetry & Context Injection</h2>
-                <div class="ui-tabs" role="tablist">
-                    <button id="tabSingle" class="mode-tab active" role="tab">Single Sector</button>
-                    <button id="tabBatch" class="mode-tab" role="tab">CSV Batch Evaluation</button>
+                <div class="ui-tabs" role="tablist" aria-label="Mode Switcher">
+                    <button id="tabSingle" class="mode-tab active" role="tab" aria-selected="true" aria-controls="contextForm">Single Sector</button>
+                    <button id="tabBatch" class="mode-tab" role="tab" aria-selected="false" aria-controls="batchForm">CSV Batch Evaluation</button>
                 </div>
             </div>
             <p id="modeDesc" class="panel-desc">Configure real-time matchday context vectors to drive GenAI reasoning decisions.</p>
 
-            <form id="contextForm" class="context-form" aria-label="Crowd Telemetry Form">
+            <form id="contextForm" class="context-form" role="tabpanel" aria-labelledby="tabSingle" aria-hidden="false">
                 <div class="form-group">
                     <label for="zoneSelect">📍 Concourse & Gate Sector</label>
                     <select id="zoneSelect" name="zone_id" required aria-required="true">
@@ -102,11 +102,11 @@
                 </button>
             </form>
 
-            <form id="batchForm" class="context-form hidden" aria-label="CSV Batch Upload Form">
+            <form id="batchForm" class="context-form hidden" role="tabpanel" aria-labelledby="tabBatch" aria-hidden="true">
                 <div class="form-group">
                     <label for="csvInput">📊 Paste or Upload Raw Sensor CSV Dataset</label>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem;">Format: <code>zone_id,user_role,match_phase,crowd_density_percentage,incident_type,additional_notes</code></p>
-                    <textarea id="csvInput" name="csv_payload" rows="8" placeholder="zone_id,user_role,match_phase,crowd_density_percentage,incident_type,additional_notes&#10;North_Gate_Concourse_Level_2_B4,GATE_SUPERVISOR,PRE_MATCH_INGRESS,94.5,OVERCROWDING_BOTTLENECK,Gate jam&#10;Transit_Hub_Egress_Platform_West,MEDICAL_OFFICER,POST_MATCH_EGRESS,108.0,MEDICAL_EMERGENCY,Fainted fan"></textarea>
+                    <p id="csvFormatHelp" style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem;">Format: <code>zone_id,user_role,match_phase,crowd_density_percentage,incident_type,additional_notes</code></p>
+                    <textarea id="csvInput" name="csv_payload" rows="8" aria-describedby="csvFormatHelp" placeholder="zone_id,user_role,match_phase,crowd_density_percentage,incident_type,additional_notes&#10;North_Gate_Concourse_Level_2_B4,GATE_SUPERVISOR,PRE_MATCH_INGRESS,94.5,OVERCROWDING_BOTTLENECK,Gate jam&#10;Transit_Hub_Egress_Platform_West,MEDICAL_OFFICER,POST_MATCH_EGRESS,108.0,MEDICAL_EMERGENCY,Fainted fan"></textarea>
                 </div>
                 <button type="submit" class="btn-primary" id="batchBtn">
                     <span>RUN O(M*log N) BATCH EVALUATION</span>
@@ -179,13 +179,13 @@
                     <!-- Multilingual PA Broadcast Scripts -->
                     <div class="result-card pa-card">
                         <div class="card-label">📢 MULTILINGUAL PUBLIC ADDRESS SCRIPTS (LOCALIZED)</div>
-                        <div class="pa-tabs" role="tablist">
-                            <button class="pa-tab active" data-lang="english" role="tab">English</button>
-                            <button class="pa-tab" data-lang="spanish" role="tab">Español</button>
-                            <button class="pa-tab" data-lang="french" role="tab">Français</button>
+                        <div class="pa-tabs" role="tablist" aria-label="Public Address Language Selection">
+                            <button id="paTabEn" class="pa-tab active" data-lang="english" role="tab" aria-selected="true" aria-controls="paScriptText">English</button>
+                            <button id="paTabEs" class="pa-tab" data-lang="spanish" role="tab" aria-selected="false" aria-controls="paScriptText">Español</button>
+                            <button id="paTabFr" class="pa-tab" data-lang="french" role="tab" aria-selected="false" aria-controls="paScriptText">Français</button>
                         </div>
-                        <div class="pa-content-box">
-                            <p id="paScriptText" class="pa-text"></p>
+                        <div class="pa-content-box" role="tabpanel" aria-labelledby="paTabEn">
+                            <p id="paScriptText" class="pa-text" tabindex="0"></p>
                         </div>
                     </div>
                 </div>

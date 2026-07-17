@@ -47,10 +47,16 @@ if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+from typing import Any
+
 @app.get("/", summary="Serve Operations Dashboard UI", response_class=FileResponse)
-async def serve_dashboard():
+async def serve_dashboard() -> Any:
     """
     Root route serving the vanilla HTML5/CSS/JS Operations Dashboard.
+    
+    Returns:
+        FileResponse | Dict[str, str]: Static index.html payload or error dictionary if missing.
+        
     WHY: Serving vanilla web assets directly from FastAPI eliminates Node/Vite build steps,
     guarantees zero node_modules bloat, and keeps total repository footprint well under 10MB.
     """
@@ -58,6 +64,7 @@ async def serve_dashboard():
     if not os.path.exists(index_path):
         return {"error": "Dashboard index.html not found in static directory."}
     return FileResponse(index_path)
+
 
 
 if __name__ == "__main__":

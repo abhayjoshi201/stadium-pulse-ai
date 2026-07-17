@@ -218,3 +218,76 @@ def test_api_batch_csv_upload_and_binary_search():
     assert len(evals) == 3
     assert evals[1]["recommended_action_mode"] == "EMERGENCY_CLEARANCE_AND_PULSE_METERING"
 
+
+def test_serve_dashboard_root_endpoint():
+    """
+    Verifies that GET / returns the vanilla HTML command center dashboard with 200 OK.
+    WHY: Guarantees frontend availability without requiring external static server infrastructure.
+    """
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "<!DOCTYPE html>" in response.text or "<title>Stadium Pulse AI" in response.text
+
+
+def test_api_batch_csv_upload_empty_payload_raises_400():
+    """
+    Verifies that submitting an empty or whitespace-only CSV payload returns HTTP 400 Bad Request.
+    WHY: Protects batch ingestion logic against zero-length string inputs.
+    """
+    response = client.post("/api/v1/telemetry/batch-csv-upload", json={"csv_payload": "   \n  "})
+    assert response.status_code == 400
+    assert "cannot be empty" in response.json()["detail"]
+
+
+def test_api_batch_csv_upload_malformed_rows_handled_gracefully():
+    """
+    Verifies that malformed CSV rows with invalid density strings do not crash batch execution.
+    WHY: Ensures 100% fault-tolerant batch processing when field sensors output corrupted data.
+    """
+    malformed_csv = "zone_id,user_role,match_phase,crowd_density_percentage\nUnknown_Gate,INVALID_ROLE,INVALID_PHASE,not_a_number"
+    response = client.post("/api/v1/telemetry/batch-csv-upload", json={"csv_payload": malformed_csv})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "BATCH_PROCESSED_SUCCESSFULLY"
+    assert len(data["batch_evaluation_results"]["sector_evaluations"]) == 1
+
+
+def test_ai_service_extract_clean_json_from_markdown():
+    """
+    Verifies regex extraction of JSON objects embedded inside markdown code fences.
+    WHY: Prevents parser crashes when LLMs wrap structured outputs in ```json blocks.
+    """
+    service = CrowdIntelligenceService()
+    raw_markdown = "Here is the response:\n```json\n{\"stadium_id\": \"test\"}\n```\nEnd."
+    cleaned = service._extract_clean_json(raw_markdown)
+    assert cleaned == "{\"stadium_id\": \"test\"}"
+
+
+def test_spatial_engine_unknown_zone_default_fallback():
+    """
+    Verifies that querying an unknown sector returns safe default capacities and fallback profiles.
+    WHY: Ensures zero exceptions when newly constructed concourses are queried before database updates.
+    """
+    req = CrowdContextRequest(zone_id="Nonexistent_Gate_99", crowd_density_percentage=65.0)
+    enriched = SpatialContextEngine.enrich_context(req)
+    assert "Nonexistent_Gate_99" in enriched["zone_architectural_profile"]
+    assert enriched["nominal_capacity"] == 3000
+
+
+def test_settings_lru_cache_and_service_singleton():
+    """
+    Verifies factory function LRU caching and singleton behavior across service accessors.
+    WHY: Guarantees zero redundant disk reads on high-concurrency matchday API invocations.
+    """
+    from app.core.config import get_settings
+    from app.services.ai_service import get_intelligence_service
+    
+    settings_a = get_settings()
+    settings_b = get_settings()
+    assert settings_a is settings_b
+
+    service_a = get_intelligence_service()
+    service_b = get_intelligence_service()
+    assert service_a is service_b
+
+

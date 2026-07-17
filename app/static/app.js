@@ -46,16 +46,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabSingle && tabBatch) {
         tabSingle.addEventListener('click', () => {
             tabSingle.classList.add('active');
+            tabSingle.setAttribute('aria-selected', 'true');
             tabBatch.classList.remove('active');
+            tabBatch.setAttribute('aria-selected', 'false');
             contextForm.classList.remove('hidden');
+            contextForm.setAttribute('aria-hidden', 'false');
             batchForm.classList.add('hidden');
+            batchForm.setAttribute('aria-hidden', 'true');
             modeDesc.textContent = "Configure real-time matchday context vectors to drive GenAI reasoning decisions.";
         });
         tabBatch.addEventListener('click', () => {
             tabBatch.classList.add('active');
+            tabBatch.setAttribute('aria-selected', 'true');
             tabSingle.classList.remove('active');
+            tabSingle.setAttribute('aria-selected', 'false');
             batchForm.classList.remove('hidden');
+            batchForm.setAttribute('aria-hidden', 'false');
             contextForm.classList.add('hidden');
+            contextForm.setAttribute('aria-hidden', 'true');
             modeDesc.textContent = "Paste or upload high-frequency CSV gate sensor datasets for O(M * log N) batch classification.";
         });
     }

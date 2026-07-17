@@ -5,6 +5,7 @@ WHY: Exposing our context-aware GenAI engine and spatial enrichment algorithms v
 allows modular integration with stadium concourse displays, mobile steward tablet apps, and central command dashboards.
 """
 
+from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.models.schemas import CrowdContextRequest, CrowdActionPlanResponse, BatchCSVRequest
 from app.services.ai_service import CrowdIntelligenceService, get_intelligence_service
@@ -29,6 +30,17 @@ async def analyze_crowd_context(
 ) -> CrowdActionPlanResponse:
     """
     Primary GenAI analysis endpoint.
+    
+    Args:
+        request (CrowdContextRequest): Multi-dimensional matchday context vector.
+        service (CrowdIntelligenceService): Injected singleton instance of the AI reasoning service.
+        
+    Returns:
+        CrowdActionPlanResponse: Fully validated operational action plan.
+        
+    Raises:
+        HTTPException (500): If synthesis unexpectedly encounters an unhandled runtime error.
+        
     WHY: Using dependency injection (`Depends`) ensures clean unit testing by allowing easy service mocking.
     """
     try:
@@ -50,9 +62,19 @@ async def analyze_crowd_context(
         "Returns computed crush risk index, architectural profile, and recommended operational action mode."
     )
 )
-async def compute_spatial_enrichment(request: CrowdContextRequest):
+async def compute_spatial_enrichment(request: CrowdContextRequest) -> Dict[str, Any]:
     """
     Standalone spatial enrichment calculator endpoint.
+    
+    Args:
+        request (CrowdContextRequest): Concourse density and spatial request metrics.
+        
+    Returns:
+        Dict[str, Any]: Enriched spatial calculations (`crush_risk_index`, `recommended_action_mode`).
+        
+    Raises:
+        HTTPException (500): If mathematical calculation fails or overflows.
+        
     WHY: Allows command center controllers and evaluators to verify the mathematical crush-risk algorithms
     and architectural zone profiles instantly without incurring LLM latency or token costs.
     """
@@ -79,21 +101,34 @@ async def compute_spatial_enrichment(request: CrowdContextRequest):
         "runs high-speed binary search threshold classifications across all sectors, and outputs a complete stadium triage report."
     )
 )
-async def evaluate_batch_csv(request: BatchCSVRequest):
+async def evaluate_batch_csv(request: BatchCSVRequest) -> Dict[str, Any]:
     """
     Batch CSV telemetry evaluation endpoint.
+    
+    Args:
+        request (BatchCSVRequest): Input wrapper containing the raw CSV telemetry string.
+        
+    Returns:
+        Dict[str, Any]: Batch summary metrics (`total_sectors_analyzed`, `critical_bottleneck_zones`) and sector rows.
+        
+    Raises:
+        HTTPException (400): If the submitted CSV string is empty or whitespace-only.
+        HTTPException (500): If batch stream processing encounters a critical failure.
+        
     WHY: Directly meets Challenge 4 functional testing criteria by enabling real-world dataset evaluation
     over high-frequency gate sensor logs without manual JSON formulation.
     """
     try:
         if not request.csv_payload or not request.csv_payload.strip():
-            raise HTTPException(status_code=400, detail="CSV payload string cannot be empty.")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CSV payload string cannot be empty.")
         results = SpatialContextEngine.evaluate_csv_batch(request.csv_payload)
         return {
             "status": "BATCH_PROCESSED_SUCCESSFULLY",
             "stadium_id": "metlife_stadium_ny_nj",
             "batch_evaluation_results": results
         }
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -108,9 +143,16 @@ async def evaluate_batch_csv(request: BatchCSVRequest):
 )
 async def health_check(
     service: CrowdIntelligenceService = Depends(get_intelligence_service)
-):
+) -> Dict[str, Any]:
     """
     Health check endpoint.
+    
+    Args:
+        service (CrowdIntelligenceService): Injected AI service instance for GenAI client liveness probing.
+        
+    Returns:
+        Dict[str, Any]: Status map confirming API status, engine version, and GenAI live mode.
+        
     WHY: Essential for automated Kubernetes/Docker liveness probes during World Cup matchday operations.
     """
     is_ai_live = service.client is not None and bool(service.settings.gemini_api_key)
@@ -129,9 +171,13 @@ async def health_check(
     summary="List Available Stadium Zones for Telemetry Simulation",
     description="Provides pre-configured World Cup stadium concourses and gates for dashboard interaction."
 )
-async def get_stadium_zones():
+async def get_stadium_zones() -> Dict[str, Any]:
     """
     Returns standard concourses and gates with architectural details.
+    
+    Returns:
+        Dict[str, Any]: Pre-mapped World Cup stadium zone metadata and capacity limits.
+        
     WHY: Pre-populating zones enables immediate, frictionless evaluation and demo capabilities on the UI.
     """
     return {
