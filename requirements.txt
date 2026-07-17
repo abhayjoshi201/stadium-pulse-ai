@@ -1,0 +1,21 @@
+# =========================================================
+# AURA-26 STADIUM PULSE DEPENDENCIES (Lightweight Stack)
+# =========================================================
+
+# High-performance async web framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+
+# Strict data validation & schema parsing
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+
+# Google GenAI official SDK for structured prompting
+google-genai>=0.1.0
+
+# Environment variable loading
+python-dotenv>=1.0.1
+
+# Testing framework for verification of core logic
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura-26 | FIFA World Cup 2026 Stadium Pulse</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Navigation & Status Bar -->
+    <header class="app-header" role="banner">
+        <div class="header-brand">
+            <div class="pulse-indicator" aria-hidden="true"></div>
+            <div>
+                <h1 class="brand-title">AURA-26 <span class="brand-badge">STADIUM PULSE</span></h1>
+                <p class="brand-subtitle">FIFA World Cup 2026 • Autonomous Crowd Flow & Operations Intelligence</p>
+            </div>
+        </div>
+        <div class="header-status" role="status" aria-live="polite">
+            <span class="status-label">API STATUS:</span>
+            <span id="apiStatusBadge" class="status-badge checking">CHECKING...</span>
+        </div>
+    </header>
+
+    <!-- Main Command Center Grid -->
+    <main class="dashboard-grid" role="main">
+        <!-- Left Panel: Contextual Telemetry Input -->
+        <section class="panel telemetry-panel" aria-labelledby="telemetryTitle">
+            <div class="panel-header">
+                <h2 id="telemetryTitle">⚡ Telemetry & Context Injection</h2>
+                <span class="panel-tag">LIVE SIMULATION</span>
+            </div>
+            <p class="panel-desc">Configure real-time matchday context vectors to drive GenAI reasoning decisions.</p>
+
+            <form id="contextForm" class="context-form" aria-label="Crowd Telemetry Form">
+                <div class="form-group">
+                    <label for="zoneSelect">📍 Concourse & Gate Sector</label>
+                    <select id="zoneSelect" name="zone_id" required aria-required="true">
+                        <option value="North_Gate_Concourse_Level_2_B4">North Gate Concourse - Level 2 (Sector B4)</option>
+                        <option value="VIP_East_Turnstile_Bank_A">VIP East Turnstile Bank A</option>
+                        <option value="South_Concourse_Restrooms_Sector_C2">South Concourse Restrooms (Sector C2)</option>
+                        <option value="Transit_Hub_Egress_Platform_West">Transit Hub & Shuttle Platform (West Gate)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="roleSelect">👤 Requester Role</label>
+                        <select id="roleSelect" name="user_role">
+                            <option value="GATE_SUPERVISOR">Gate Supervisor</option>
+                            <option value="OPERATIONS_DIRECTOR">Operations Director</option>
+                            <option value="STEWARD">Floor Steward</option>
+                            <option value="MEDICAL_OFFICER">Medical & Accessibility Officer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phaseSelect">⏱️ Match Phase</label>
+                        <select id="phaseSelect" name="match_phase">
+                            <option value="PRE_MATCH_INGRESS">Pre-Match Ingress (-45m)</option>
+                            <option value="HALFTIME_SURGE">Halftime Surge (+45m)</option>
+                            <option value="MATCH_IN_PROGRESS">Match in Progress</option>
+                            <option value="POST_MATCH_EGRESS">Post-Match Egress (+90m)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="slider-header">
+                        <label for="densitySlider">👥 Real-Time Crowd Density (% capacity)</label>
+                        <span id="densityValue" class="slider-value">85%</span>
+                    </div>
+                    <input type="range" id="densitySlider" name="crowd_density_percentage" min="20" max="130" value="85" step="1" aria-valuemin="20" aria-valuemax="130" aria-valuenow="85">
+                </div>
+
+                <div class="form-group">
+                    <label for="incidentSelect">🚨 Detected Incident / Anomaly</label>
+                    <select id="incidentSelect" name="incident_type">
+                        <option value="NORMAL_FLOW">Normal Operational Flow</option>
+                        <option value="OVERCROWDING_BOTTLENECK">Overcrowding Bottleneck Surge</option>
+                        <option value="TURNSTILE_JAM">Turnstile Jam / Scanner Failure</option>
+                        <option value="WEATHER_ALERT">Sudden Weather Alert (Downpour)</option>
+                        <option value="MEDICAL_EMERGENCY">Medical Emergency in Corridor</option>
+                        <option value="ACCESSIBILITY_OBSTRUCTION">Accessibility Ramp Obstruction</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notesInput">📝 Field Notes / Observations (Optional)</label>
+                    <textarea id="notesInput" name="additional_notes" rows="2" placeholder="e.g., 'Sudden rain driving 5,000 general admission ticket holders to seek shelter under Gate C canopy.'"></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" id="analyzeBtn">
+                    <span>SYNTHESIZE CROWD INTELLIGENCE</span>
+                    <span class="btn-icon">✨</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Right Panel: Structured GenAI Output & Directives -->
+        <section class="panel intelligence-panel" aria-labelledby="outputTitle">
+            <div class="panel-header">
+                <h2 id="outputTitle">🧠 GenAI Decision Matrix & Directives</h2>
+                <span id="riskBadge" class="risk-badge risk-low">AWAITING SYNTHESIS</span>
+            </div>
+
+            <div id="loadingIndicator" class="loading-state hidden" aria-hidden="true">
+                <div class="spinner"></div>
+                <p>Synthesizing multi-variable crowd telemetry & generating multilingual PA payloads...</p>
+            </div>
+
+            <!-- Output Container -->
+            <div id="outputContainer" class="output-content" aria-live="polite">
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <h3>Ready for Context Injection</h3>
+                    <p>Select a stadium concourse, adjust crowd density, and trigger synthesis to generate structured operational directives and LED signage payloads.</p>
+                </div>
+
+                <!-- Active Results Container (Hidden by default until synthesis) -->
+                <div id="resultsContainer" class="results-container hidden">
+                    <!-- Executive Summary Box -->
+                    <div class="result-card summary-card">
+                        <div class="card-label">EXECUTIVE BRIEFING FOR ROLE</div>
+                        <p id="summaryText" class="summary-text"></p>
+                    </div>
+
+                    <!-- Risk Assessment Box -->
+                    <div class="result-card risk-card">
+                        <div class="risk-metrics">
+                            <div>
+                                <span class="metric-label">BOTTLENECK PROBABILITY (15m)</span>
+                                <div id="probValue" class="metric-value">--%</div>
+                            </div>
+                            <div>
+                                <span class="metric-label">ASSESSED RISK LEVEL</span>
+                                <div id="riskTextValue" class="metric-value">--</div>
+                            </div>
+                        </div>
+                        <div class="root-cause-box">
+                            <span class="root-label">ROOT CAUSE ANALYSIS:</span>
+                            <p id="rootCauseText"></p>
+                        </div>
+                    </div>
+
+                    <!-- LED Signage Payload Box -->
+                    <div class="result-card signage-card">
+                        <div class="card-label">📟 CONCOURSE DIGITAL SIGNAGE PAYLOAD (INSTANT PUSH READY)</div>
+                        <div class="led-display">
+                            <span id="signageText" class="led-text">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Tactical Directives List -->
+                    <div class="result-card directives-card">
+                        <div class="card-label">🛠️ PRIORITIZED STEWARD & OPERATIONS DIRECTIVES</div>
+                        <ul id="directivesList" class="directives-list"></ul>
+                    </div>
+
+                    <!-- Multilingual PA Broadcast Scripts -->
+                    <div class="result-card pa-card">
+                        <div class="card-label">📢 MULTILINGUAL PUBLIC ADDRESS SCRIPTS (LOCALIZED)</div>
+                        <div class="pa-tabs" role="tablist">
+                            <button class="pa-tab active" data-lang="english" role="tab">English</button>
+                            <button class="pa-tab" data-lang="spanish" role="tab">Español</button>
+                            <button class="pa-tab" data-lang="french" role="tab">Français</button>
+                        </div>
+                        <div class="pa-content-box">
+                            <p id="paScriptText" class="pa-text"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>Aura-26 v1.0.0 • Built for FIFA World Cup 2026 • Powered by FastAPI & Structured GenAI Reasoning</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
