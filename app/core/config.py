@@ -10,7 +10,7 @@ import os
 from functools import lru_cache
 from dotenv import load_dotenv
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # WHY: Explicitly load .env file at startup to ensure environment variables are populated
 # before BaseSettings instantiates, allowing seamless local development.
@@ -66,11 +66,11 @@ class Settings(BaseSettings):
         description="Model identifier used for high-speed structured GenAI crowd reasoning."
     )
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        # WHY: Ignore extra variables in .env so evaluators can include custom metadata without crashing.
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
 
 @lru_cache()

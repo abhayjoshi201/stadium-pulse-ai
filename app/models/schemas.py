@@ -8,7 +8,7 @@ prevents malformed concourse signage updates, and guarantees type safety across 
 
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class MatchPhase(str, Enum):
@@ -84,8 +84,8 @@ class CrowdContextRequest(BaseModel):
         description="Optional field notes or real-time steward observations (e.g., 'Heavy rain driving fans indoors')."
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "stadium_id": "metlife_stadium_ny_nj",
                 "zone_id": "North_Gate_Concourse_Level_2_B4",
@@ -96,6 +96,7 @@ class CrowdContextRequest(BaseModel):
                 "additional_notes": "Unexpected sudden downpour causing fans to stop right inside Gate C turnstiles."
             }
         }
+    )
 
 
 class RiskAssessment(BaseModel):
