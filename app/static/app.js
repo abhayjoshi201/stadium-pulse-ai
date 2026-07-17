@@ -15,6 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const analyzeBtn = document.getElementById('analyzeBtn');
     const notesInput = document.getElementById('notesInput');
     
+    // Mode Switcher Elements
+    const tabSingle = document.getElementById('tabSingle');
+    const tabBatch = document.getElementById('tabBatch');
+    const modeDesc = document.getElementById('modeDesc');
+    const batchForm = document.getElementById('batchForm');
+    const batchBtn = document.getElementById('batchBtn');
+    const csvInput = document.getElementById('csvInput');
+    
     // Output Containers
     const loadingIndicator = document.getElementById('loadingIndicator');
     const emptyState = document.getElementById('emptyState');
@@ -33,6 +41,82 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // State storage for PA scripts
     let currentPaScripts = null;
+
+    // Mode Switcher Listeners
+    if (tabSingle && tabBatch) {
+        tabSingle.addEventListener('click', () => {
+            tabSingle.classList.add('active');
+            tabBatch.classList.remove('active');
+            contextForm.classList.remove('hidden');
+            batchForm.classList.add('hidden');
+            modeDesc.textContent = "Configure real-time matchday context vectors to drive GenAI reasoning decisions.";
+        });
+        tabBatch.addEventListener('click', () => {
+            tabBatch.classList.add('active');
+            tabSingle.classList.remove('active');
+            batchForm.classList.remove('hidden');
+            contextForm.classList.add('hidden');
+            modeDesc.textContent = "Paste or upload high-frequency CSV gate sensor datasets for O(M * log N) batch classification.";
+        });
+    }
+
+    if (batchForm) {
+        batchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            batchBtn.disabled = true;
+            emptyState.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+            loadingIndicator.classList.remove('hidden');
+            riskBadge.textContent = 'BATCH EVALUATING...';
+            riskBadge.className = 'risk-badge risk-moderate';
+
+            try {
+                const response = await fetch('/api/v1/telemetry/batch-csv-upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ csv_payload: csvInput.value })
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Batch evaluation failed');
+                }
+                const data = await response.json();
+                renderBatchResults(data.batch_evaluation_results);
+            } catch (err) {
+                alert(`Batch CSV Error: ${err.message}`);
+                emptyState.classList.remove('hidden');
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                batchBtn.disabled = false;
+            }
+        });
+    }
+
+    function renderBatchResults(batchData) {
+        summaryText.textContent = `[BATCH EVALUATION COMPLETE] Analyzed ${batchData.batch_summary.total_sectors_analyzed} sectors in ${batchData.batch_summary.algorithmic_complexity}. Average density: ${batchData.batch_summary.average_stadium_density} | Critical Bottleneck Zones: ${batchData.batch_summary.critical_bottleneck_zones}.`;
+        probValue.textContent = `${batchData.batch_summary.critical_bottleneck_zones} ZONE(S)`;
+        riskTextValue.textContent = batchData.batch_summary.critical_bottleneck_zones > 0 ? "CRITICAL BATCH" : "NOMINAL";
+        rootCauseText.textContent = `Algorithm: ${batchData.batch_summary.algorithmic_complexity}. Binary search threshold cutoffs evaluated instantaneously across all rows without linear traversal.`;
+        signageText.textContent = `⚠️ MULTI-GATE BATCH PROCESSED. ${batchData.batch_summary.critical_bottleneck_zones} CRITICAL ZONES IDENTIFIED FOR PULSE METERING.`;
+        
+        directivesList.innerHTML = '';
+        batchData.sector_evaluations.forEach((evalItem, idx) => {
+            const li = document.createElement('li');
+            li.className = `directive-item priority-${evalItem.crush_risk_index >= 95 ? 1 : 2}`;
+            li.innerHTML = `
+                <span class="directive-badge">ROW ${evalItem.row_id}</span>
+                <div>
+                    <span class="directive-target">${evalItem.zone_id} (${evalItem.raw_density} density | Index: ${evalItem.crush_risk_index})</span>
+                    <span class="directive-text">Mode: <strong>${evalItem.recommended_action_mode}</strong> | Overflow: ${evalItem.adjacent_overflow_targets.join(', ')}</span>
+                </div>
+            `;
+            directivesList.appendChild(li);
+        });
+
+        paScriptText.textContent = `Batch evaluation completed across ${batchData.batch_summary.total_sectors_analyzed} concourse sectors. Stewards deployed to ${batchData.batch_summary.critical_bottleneck_zones} critical bottleneck zones.`;
+        resultsContainer.classList.remove('hidden');
+        summaryText.focus();
+    }
 
     // WHY: Immediate health check verification upon load informs controllers of backend status instantly.
     async function checkApiHealth() {

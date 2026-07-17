@@ -166,3 +166,22 @@ class CrowdActionPlanResponse(BaseModel):
     summary_for_role: str = Field(
         description="Tailored executive or tactical summary specifically formatted for the requester's role."
     )
+
+
+class BatchCSVRequest(BaseModel):
+    """
+    Input schema representing a raw CSV payload string submitted by evaluators or sensor gateways.
+    WHY: Facilitates functional batch testing of real stadium telemetry without requiring multipart form data complexity in simple REST clients.
+    """
+    csv_payload: str = Field(
+        description="Raw CSV content with header row: zone_id,user_role,match_phase,crowd_density_percentage,incident_type,additional_notes"
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "csv_payload": "zone_id,user_role,match_phase,crowd_density_percentage,incident_type,additional_notes\nNorth_Gate_Concourse_Level_2_B4,GATE_SUPERVISOR,PRE_MATCH_INGRESS,94.5,OVERCROWDING_BOTTLENECK,Gate jam\nTransit_Hub_Egress_Platform_West,MEDICAL_OFFICER,POST_MATCH_EGRESS,108.0,MEDICAL_EMERGENCY,Fainted fan"
+            }
+        }
+    )
+

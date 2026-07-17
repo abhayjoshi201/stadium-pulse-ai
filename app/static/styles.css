@@ -172,6 +172,34 @@ body {
     color: var(--accent-cyan);
 }
 
+.ui-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 0.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+}
+
+.mode-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mode-tab.active {
+    background: var(--accent-blue);
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+
 .panel-desc {
     color: var(--text-secondary);
     font-size: 0.9rem;
