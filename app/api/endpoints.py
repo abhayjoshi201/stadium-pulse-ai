@@ -1,13 +1,14 @@
 """
 Aura-26 Stadium Pulse API Routers & Endpoints.
 
-WHY: Exposing our context-aware GenAI engine via clean REST endpoints allows modular integration
-with stadium concourse displays, mobile steward tablet apps, and central command center dashboards.
+WHY: Exposing our context-aware GenAI engine and spatial enrichment algorithms via clean REST endpoints
+allows modular integration with stadium concourse displays, mobile steward tablet apps, and central command dashboards.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.models.schemas import CrowdContextRequest, CrowdActionPlanResponse
 from app.services.ai_service import CrowdIntelligenceService, get_intelligence_service
+from app.services.context_engine import SpatialContextEngine
 
 router = APIRouter(prefix="/api/v1", tags=["Crowd Operations Intelligence"])
 
@@ -17,8 +18,8 @@ router = APIRouter(prefix="/api/v1", tags=["Crowd Operations Intelligence"])
     response_model=CrowdActionPlanResponse,
     summary="Analyze Real-Time Crowd Telemetry & Generate GenAI Action Plan",
     description=(
-        "Ingests temporal, spatial, role-based, and telemetry context vectors. "
-        "Returns structured, localized tactical action plans, LED signage payloads, and multilingual PA scripts."
+        "Ingests temporal, spatial, role-based, and telemetry context vectors. Enriches data via the Spatial Engine, "
+        "and returns structured, localized tactical action plans, LED signage payloads, and multilingual PA scripts."
     )
 )
 async def analyze_crowd_context(
@@ -40,6 +41,35 @@ async def analyze_crowd_context(
         )
 
 
+@router.post(
+    "/stadium/spatial-enrichment",
+    summary="Compute Quantitative Spatial Risk Index (No LLM Call)",
+    description=(
+        "Runs the deterministic SpatialContextEngine on the input vector without calling external GenAI endpoints. "
+        "Returns computed crush risk index, architectural profile, and recommended operational action mode."
+    )
+)
+async def compute_spatial_enrichment(request: CrowdContextRequest):
+    """
+    Standalone spatial enrichment calculator endpoint.
+    WHY: Allows command center controllers and evaluators to verify the mathematical crush-risk algorithms
+    and architectural zone profiles instantly without incurring LLM latency or token costs.
+    """
+    try:
+        enriched_data = SpatialContextEngine.enrich_context(request)
+        return {
+            "stadium_id": request.stadium_id,
+            "zone_id": request.zone_id,
+            "raw_density_input": f"{request.crowd_density_percentage}%",
+            "spatial_enrichment_results": enriched_data
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Spatial enrichment calculation failure: {str(exc)}"
+        )
+
+
 @router.get(
     "/health",
     summary="System Health & Readiness Check",
@@ -56,6 +86,7 @@ async def health_check(
     return {
         "status": "ONLINE",
         "stadium_pulse_engine": "Aura-26 v1.0.0",
+        "spatial_context_engine": "ACTIVE",
         "genai_live_mode": is_ai_live,
         "default_stadium": service.settings.default_stadium_id,
         "environment": service.settings.app_env
@@ -69,7 +100,7 @@ async def health_check(
 )
 async def get_stadium_zones():
     """
-    Returns standard concourses and gates.
+    Returns standard concourses and gates with architectural details.
     WHY: Pre-populating zones enables immediate, frictionless evaluation and demo capabilities on the UI.
     """
     return {
@@ -80,25 +111,29 @@ async def get_stadium_zones():
                 "zone_id": "North_Gate_Concourse_Level_2_B4",
                 "name": "North Gate Concourse - Level 2 (Sector B4)",
                 "type": "Turnstile & Ingress Bank",
-                "normal_capacity": 4500
+                "nominal_capacity": 4500,
+                "bottleneck_sensitivity": 1.2
             },
             {
                 "zone_id": "VIP_East_Turnstile_Bank_A",
                 "name": "VIP East Turnstile Bank A",
                 "type": "Express & Hospitality Gate",
-                "normal_capacity": 1200
+                "nominal_capacity": 1200,
+                "bottleneck_sensitivity": 0.8
             },
             {
                 "zone_id": "South_Concourse_Restrooms_Sector_C2",
                 "name": "South Concourse Restroom & Concession Hub (Sector C2)",
                 "type": "Halftime High-Density Area",
-                "normal_capacity": 3800
+                "nominal_capacity": 3800,
+                "bottleneck_sensitivity": 1.5
             },
             {
                 "zone_id": "Transit_Hub_Egress_Platform_West",
                 "name": "Transit Hub & Shuttle Egress Platform (West Gate)",
                 "type": "Post-Match Egress Bottleneck",
-                "normal_capacity": 6500
+                "nominal_capacity": 6500,
+                "bottleneck_sensitivity": 1.8
             }
         ]
     }

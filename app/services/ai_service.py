@@ -2,21 +2,26 @@
 Aura-26 GenAI Crowd Intelligence Service Layer.
 
 WHY: Abstracting GenAI interaction into a dedicated async service class decouples prompt engineering
-and API call retry logic from the REST controllers. It also provides deterministic fallback behavior
-if network timeouts or API key limits occur during live World Cup stadium operations.
+and API call retry logic from the REST controllers. It also provides multi-layer fallback resilience,
+combining Google GenAI structured outputs with spatial context enrichment and deterministic algorithms
+for high-availability World Cup stadium operations.
 """
 
 import json
+import re
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from app.core.config import get_settings
+from app.core.prompts import SYSTEM_INSTRUCTION_AURA26, build_crowd_intelligence_prompt
+from app.services.context_engine import SpatialContextEngine
 from app.models.schemas import (
     CrowdContextRequest,
     CrowdActionPlanResponse,
     RiskAssessment,
     StewardDirective,
     PublicAddressScript,
+    IncidentType,
 )
 
 # WHY: Attempt to import Google GenAI SDK cleanly without breaking local dev if unconfigured.
@@ -30,8 +35,8 @@ except ImportError:
 
 class CrowdIntelligenceService:
     """
-    Service class responsible for ingesting crowd context vectors, building strict structured prompts,
-    interacting with Google Gemini GenAI models, and ensuring fallback resilience.
+    Service class responsible for ingesting crowd context vectors, enriching spatial data,
+    interacting with Google Gemini GenAI models, and guaranteeing type-safe structured responses.
     """
 
     def __init__(self):
@@ -51,124 +56,180 @@ class CrowdIntelligenceService:
     ) -> CrowdActionPlanResponse:
         """
         Main entry point for generating a structured crowd action plan from user & stadium context.
-        WHY: Async execution ensures non-blocking I/O when communicating with external LLM endpoints.
+        WHY: Enriches raw telemetry with spatial index metrics before calling external LLMs or fallback logic.
         """
-        # WHY: Check if live GenAI client is available; if not, invoke deterministic fallback engine.
+        # Step 1: Pre-process and enrich context vector via Spatial Engine
+        enriched_telemetry = SpatialContextEngine.enrich_context(context)
+
+        # Step 2: Check GenAI client availability
         if not self.client or not self.settings.gemini_api_key:
-            return self._fallback_deterministic_reasoning(context, reason="API_KEY_MISSING_OR_CLIENT_UNAVAILABLE")
+            return self._fallback_deterministic_reasoning(
+                context, 
+                enriched_telemetry, 
+                reason="API_KEY_MISSING_OR_CLIENT_UNAVAILABLE"
+            )
+
+        # Step 3: Build modular prompt using enriched context
+        prompt_payload = build_crowd_intelligence_prompt(context, enriched_telemetry)
 
         try:
-            # Build structured system prompt and context payload
-            prompt_payload = self._build_prompt_payload(context)
-            
-            # WHY: Use structured output config to enforce that Gemini returns exact JSON matching CrowdActionPlanResponse
+            # Primary Strategy: Structured JSON Schema enforcement via Google GenAI SDK
             response = self.client.models.generate_content(
                 model=self.settings.ai_model_name,
-                contents=prompt_payload,
+                contents=[
+                    types.Part.from_text(text=SYSTEM_INSTRUCTION_AURA26),
+                    types.Part.from_text(text=prompt_payload)
+                ],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=CrowdActionPlanResponse,
-                    temperature=0.2,  # WHY: Low temperature ensures deterministic, highly logical operational directives
+                    temperature=0.2,  # WHY: Low temperature ensures high operational logic and determinism
                 )
             )
             
-            # Parse and validate the response against Pydantic schema
+            # Parse and validate the strict schema response
             response_json = json.loads(response.text)
             return CrowdActionPlanResponse.model_validate(response_json)
 
-        except Exception as err:
-            # WHY: Absolute zero-tolerance for unhandled exceptions crashing matchday operations.
-            print(f"[ERROR] GenAI execution failure during crowd reasoning: {err}")
-            return self._fallback_deterministic_reasoning(context, reason=f"LLM_EXECUTION_ERROR: {str(err)}")
+        except Exception as primary_error:
+            # WHY: If structured generation fails (e.g. due to model tier differences), attempt clean text fallback.
+            print(f"[WARN] Primary structured GenAI generation failed ({primary_error}). Attempting secondary JSON parsing...")
+            try:
+                raw_response = self.client.models.generate_content(
+                    model=self.settings.ai_model_name,
+                    contents=prompt_payload,
+                    config=types.GenerateContentConfig(temperature=0.2)
+                )
+                cleaned_json_text = self._extract_clean_json(raw_response.text)
+                return CrowdActionPlanResponse.model_validate_json(cleaned_json_text)
+            except Exception as secondary_error:
+                print(f"[ERROR] Secondary GenAI parsing failure: {secondary_error}")
+                return self._fallback_deterministic_reasoning(
+                    context, 
+                    enriched_telemetry, 
+                    reason=f"LLM_EXECUTION_FALLBACK ({str(primary_error)})"
+                )
 
-    def _build_prompt_payload(self, context: CrowdContextRequest) -> str:
+    def _extract_clean_json(self, raw_text: str) -> str:
         """
-        Constructs the high-impact contextual prompt payload.
-        WHY: Providing explicit constraints and role boundaries forces the AI to output practical,
-        stadium-grade directives rather than generic safety advice.
+        Extracts JSON block from markdown code fences if present.
+        WHY: Protects against LLMs wrapping valid JSON inside ```json ... ``` blocks.
         """
-        return f"""
-You are Aura-26, the Chief Operational AI and Crowd Dynamics Controller for the FIFA World Cup 2026.
-Your mandate is to analyze real-time stadium telemetry and generate high-precision, localized action plans.
-
-Current Matchday Context Vector:
-- Stadium Identifier: {context.stadium_id}
-- Target Zone/Concourse: {context.zone_id}
-- Requester Role: {context.user_role.value}
-- Match Temporal Phase: {context.match_phase.value}
-- Real-time Crowd Density: {context.crowd_density_percentage}% of safe operating threshold
-- Detected Incident/Anomaly: {context.incident_type.value}
-- Steward/Field Notes: "{context.additional_notes or 'No additional notes provided.'}"
-
-Mandatory Execution Directives:
-1. Risk Assessment: Evaluate the probability of bottleneck crush or severe delay in the next 15 minutes.
-2. Action Plan: Provide 2 to 4 concrete, prioritized tactical actions tailored to the '{context.user_role.value}'.
-3. Digital Signage: Generate an ultra-concise (under 95 chars) high-visibility LED screen message to reroute or soothe fans.
-4. PA Broadcast Script: Generate calm, authoritative public address scripts in English, Spanish (Neutral/LATAM), and French.
-5. Role Summary: Write a clear executive summary specifically formatted for the '{context.user_role.value}'.
-
-Output MUST strictly adhere to the requested JSON schema.
-"""
+        match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw_text, re.DOTALL)
+        if match:
+            return match.group(1)
+        return raw_text.strip()
 
     def _fallback_deterministic_reasoning(
-        self, context: CrowdContextRequest, reason: str = ""
+        self, 
+        context: CrowdContextRequest, 
+        enriched: Dict[str, Any], 
+        reason: str = ""
     ) -> CrowdActionPlanResponse:
         """
-        Deterministic, rule-based fallback decision engine.
-        WHY: Guaranteed high-availability fallback. If the external GenAI service experiences latency,
-        or when evaluators run the app locally without an API key, the system immediately returns
-        safety-validated, context-aware operational plans.
+        High-availability deterministic decision matrix.
+        WHY: Guaranteed zero-downtime resilience. Synthesizes exact spatial calculations (`crush_risk_index`),
+        adjacent overflow zones, and incident protocols when GenAI APIs are offline during matchday.
         """
         now_utc = datetime.now(timezone.utc).isoformat()
-        
-        # Determine risk level based on density and incident
-        if context.crowd_density_percentage >= 95.0 or context.incident_type.value in ["OVERCROWDING_BOTTLENECK", "TURNSTILE_JAM"]:
+        crush_index = enriched.get("crush_risk_index", 75.0)
+        action_mode = enriched.get("recommended_action_mode", "STANDARD_OPERATIONAL_FLOW")
+        adjacent_zones = enriched.get("adjacent_overflow_zones", ["Gate B", "Sector C"])
+        overflow_target = adjacent_zones[0] if adjacent_zones else "Adjacent Concourse"
+
+        # Determine risk classification and probability score from enriched spatial index
+        if crush_index >= 95.0 or context.incident_type in [IncidentType.OVERCROWDING_BOTTLENECK, IncidentType.TURNSTILE_JAM]:
             risk_level = "CRITICAL"
-            prob = 85
-            root_cause = f"High density surge ({context.crowd_density_percentage}%) combined with {context.incident_type.value} during {context.match_phase.value}."
-            signage = f"GATE CONCOURSE CONGESTED. PLEASE REROUTE TO ADJACENT GATES FOR EXPRESS ENTRY."
-        elif context.crowd_density_percentage >= 80.0:
+            prob = min(int(crush_index * 0.95), 98)
+            root_cause = (
+                f"Severe crowd bottleneck detected (Crush Index: {crush_index}). {context.crowd_density_percentage}% density "
+                f"compounded by {context.incident_type.value} during {context.match_phase.value}. "
+                f"Architectural zone profile ({enriched.get('zone_architectural_profile')}) requires immediate pulse-metering."
+            )
+            signage = f"⚠️ GATE CONGESTED. USE EXPRESS ENTRY AT {overflow_target.upper()} FOR INSTANT ACCESS."
+        elif crush_index >= 75.0:
             risk_level = "HIGH"
-            prob = 60
-            root_cause = f"Elevated concourse density ({context.crowd_density_percentage}%) approaching threshold limits."
+            prob = min(int(crush_index * 0.8), 85)
+            root_cause = (
+                f"Elevated concourse density ({context.crowd_density_percentage}%) approaching threshold limits. "
+                f"Crush Index ({crush_index}) indicates surge risk in {context.zone_id} without queue soothing."
+            )
             signage = f"PLEASE HAVE MOBILE TICKETS READY. KEEP CORRIDORS CLEAR FOR FLOW."
         else:
-            risk_level = "MODERATE" if context.crowd_density_percentage >= 60.0 else "LOW"
-            prob = int(context.crowd_density_percentage * 0.4)
-            root_cause = f"Normal operational crowd dynamics during {context.match_phase.value}."
-            signage = f"WELCOME TO FIFA WORLD CUP 2026. ENJOY THE MATCH!"
+            risk_level = "MODERATE" if crush_index >= 50.0 else "LOW"
+            prob = int(crush_index * 0.5)
+            root_cause = (
+                f"Stable crowd flow ({context.crowd_density_percentage}% density) during {context.match_phase.value}. "
+                f"Crush Index ({crush_index}) remains within safe operational boundaries."
+            )
+            signage = f"WELCOME TO FIFA WORLD CUP 2026. FOLLOW SIGNAGE TO YOUR SECTOR."
 
-        # Generate role-aware directives
-        directives = [
-            StewardDirective(
+        # Synthesize role-specific prioritized directives
+        directives = []
+        
+        if context.incident_type == IncidentType.MEDICAL_EMERGENCY:
+            directives.append(StewardDirective(
                 priority=1,
-                assigned_target=f"{context.zone_id} Stewards",
-                action_instruction=f"Deploy active queue soothing and meter turnstile flow to maintain 5-meter safety buffer."
-            ),
-            StewardDirective(
+                assigned_target="Rapid Response Medical Triage & Security Unit",
+                action_instruction=f"Enforce 3-meter emergency corridor through {context.zone_id}. Escort medical cart directly from closest service elevator."
+            ))
+            directives.append(StewardDirective(
+                priority=2,
+                assigned_target=f"{context.zone_id} Gate Stewards",
+                action_instruction=f"Temporarily hold incoming turnstile scan velocity by 50% to prevent crowd crush around medical scene."
+            ))
+        elif context.incident_type == IncidentType.TURNSTILE_JAM:
+            directives.append(StewardDirective(
+                priority=1,
+                assigned_target="Mobile Ticketing Technical Team",
+                action_instruction=f"Deploy 4 handheld mobile scanning units to {context.zone_id} to clear stalled turnstile queue."
+            ))
+            directives.append(StewardDirective(
                 priority=2,
                 assigned_target="Concourse Digital Signage Controller",
-                action_instruction=f"Push signage update: '{signage}' across all screens in {context.zone_id}."
-            )
-        ]
-        
-        if context.incident_type.value == "MEDICAL_EMERGENCY":
-            directives.insert(0, StewardDirective(
+                action_instruction=f"Redirect 40% of approaching general admission queue to {overflow_target} using LED displays."
+            ))
+        else:
+            directives.append(StewardDirective(
                 priority=1,
-                assigned_target="Rapid Response Medical Triage",
-                action_instruction=f"Clear center aisle in {context.zone_id} and escort medical cart directly to sector."
+                assigned_target=f"{context.zone_id} Floor Stewards",
+                action_instruction=f"Enforce active queue buffering ({action_mode}). Maintain 5-meter safety spacing around turnstiles and stairwells."
+            ))
+            directives.append(StewardDirective(
+                priority=2,
+                assigned_target="Concourse Digital Signage Controller",
+                action_instruction=f"Push high-contrast signage update across {context.zone_id}: '{signage}'."
             ))
 
+        # Add overflow management directive for higher risk
+        if risk_level in ["CRITICAL", "HIGH"] and len(directives) < 4:
+            directives.append(StewardDirective(
+                priority=3,
+                assigned_target="Adjacent Concourse Coordinators",
+                action_instruction=f"Prepare {overflow_target} and {adjacent_zones[-1] if len(adjacent_zones)>1 else overflow_target} to receive redirected fan influx."
+            ))
+
+        # Synthesize multilingual PA scripts
         pa_scripts = PublicAddressScript(
-            english=f"Attention fans in {context.zone_id}: To ensure smooth entry and safety, please keep moving forward and follow steward instructions.",
-            spanish=f"Atención aficionados en {context.zone_id}: Para asegurar una entrada fluida y segura, por favor continúen avanzando y sigan las instrucciones del personal.",
-            french=f"Attention aux supporters dans {context.zone_id}: Pour assurer une entrée fluide et en toute sécurité, veuillez continuer à avancer et suivre les instructions des stadiers."
+            english=(
+                f"Attention fans in {context.zone_id}: To ensure your safety and express entry into the stadium, "
+                f"please keep corridors clear, continue moving forward, and follow steward directions toward {overflow_target}."
+            ),
+            spanish=(
+                f"Atención aficionados en {context.zone_id}: Para garantizar su seguridad y un acceso rápido al estadio, "
+                f"por favor mantengan los pasillos despejados, continúen avanzando y sigan las instrucciones del personal hacia {overflow_target}."
+            ),
+            french=(
+                f"Attention aux supporters dans {context.zone_id}: Pour assurer votre sécurité et une entrée rapide dans le stade, "
+                f"veuillez garder les couloirs dégagés, continuer à avancer et suivre les indications des stadiers vers {overflow_target}."
+            )
         )
 
         role_summary = (
-            f"[{context.user_role.value} BRIEFING] Zone {context.zone_id} is operating at {context.crowd_density_percentage}% density. "
-            f"Risk assessed as {risk_level}. Immediate action required: enforce queue buffering and update LED displays. "
-            f"(Note: Executed via high-resilience fallback logic: {reason})"
+            f"[{context.user_role.value} BRIEFING] {context.zone_id} operating at {context.crowd_density_percentage}% density "
+            f"(Crush Index: {crush_index} | Mode: {action_mode}). Risk assessed as {risk_level} with {prob}% bottleneck probability. "
+            f"Immediate priority: Enforce queue buffering and redirect overflow to {overflow_target}. "
+            f"(Executed via High-Resilience Spatial Engine: {reason})"
         )
 
         return CrowdActionPlanResponse(
@@ -187,7 +248,7 @@ Output MUST strictly adhere to the requested JSON schema.
         )
 
 
-# Singleton factory for easy dependency injection in API routers
+# Singleton factory for dependency injection
 _intelligence_service: Optional[CrowdIntelligenceService] = None
 
 def get_intelligence_service() -> CrowdIntelligenceService:
