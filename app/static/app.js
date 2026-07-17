@@ -2,7 +2,8 @@
  * Aura-26 Stadium Pulse Operations Dashboard Client Script.
  * 
  * WHY: Vanilla async JavaScript ensures zero frontend bundle overhead while providing
- * reactive, real-time command center telemetry injection and structured result rendering.
+ * reactive, real-time command center telemetry injection, keyboard shortcuts for accessibility,
+ * and structured result rendering with full ARIA live announcements.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const densityValue = document.getElementById('densityValue');
     const contextForm = document.getElementById('contextForm');
     const analyzeBtn = document.getElementById('analyzeBtn');
+    const notesInput = document.getElementById('notesInput');
     
     // Output Containers
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -40,12 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 apiStatusBadge.textContent = data.genai_live_mode ? 'ONLINE (GENAI LIVE)' : 'ONLINE (FALLBACK ENGINE)';
                 apiStatusBadge.className = 'status-badge online';
+                apiStatusBadge.setAttribute('aria-label', `API Status: ${apiStatusBadge.textContent}`);
             } else {
                 throw new Error('Health check non-200');
             }
         } catch (err) {
             apiStatusBadge.textContent = 'API OFFLINE / ERR';
             apiStatusBadge.className = 'status-badge offline';
+            apiStatusBadge.setAttribute('aria-label', 'API Status: Offline or Error');
             console.error('API health check failed:', err);
         }
     }
@@ -56,13 +60,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // WHY: Real-time slider feedback allows precise concourse capacity threshold adjustment.
     densitySlider.addEventListener('input', (e) => {
         densityValue.textContent = `${e.target.value}%`;
+        densitySlider.setAttribute('aria-valuenow', e.target.value);
     });
 
-    // PA Tab Switcher Logic
+    // Keyboard Accessibility: Ctrl+Enter or Cmd+Enter inside form submits instantly
+    notesInput.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            contextForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    // Keyboard Accessibility: Escape key resets view back to empty state for rapid triage
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !resultsContainer.classList.contains('hidden')) {
+            resultsContainer.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            riskBadge.textContent = 'AWAITING SYNTHESIS';
+            riskBadge.className = 'risk-badge risk-low';
+            notesInput.focus();
+        }
+    });
+
+    // PA Tab Switcher Logic with ARIA updates
     paTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            paTabs.forEach(t => t.classList.remove('active'));
+            paTabs.forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
             tab.classList.add('active');
+            tab.setAttribute('aria-selected', 'true');
             
             if (currentPaScripts) {
                 const lang = tab.getAttribute('data-lang');
@@ -82,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingIndicator.classList.remove('hidden');
         riskBadge.textContent = 'SYNTHESIZING...';
         riskBadge.className = 'risk-badge risk-moderate';
+        loadingIndicator.setAttribute('aria-busy', 'true');
 
         const formData = new FormData(contextForm);
         const payload = {
@@ -116,13 +145,14 @@ document.addEventListener('DOMContentLoaded', () => {
             emptyState.classList.remove('hidden');
         } finally {
             loadingIndicator.classList.add('hidden');
+            loadingIndicator.setAttribute('aria-busy', 'false');
             analyzeBtn.disabled = false;
         }
     });
 
     /**
      * Renders the structured GenAI response onto the command center UI.
-     * WHY: Clear visual hierarchy ensures immediate comprehension during high-pressure crowd situations.
+     * WHY: Clear visual hierarchy and ARIA live announcements ensure immediate comprehension during high-pressure crowd situations.
      */
     function renderResults(data) {
         // Update Risk Badge
@@ -160,7 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeLang = activeTab ? activeTab.getAttribute('data-lang') : 'english';
         paScriptText.textContent = currentPaScripts[activeLang] || currentPaScripts.english;
 
-        // Reveal results container
+        // Reveal results container and focus for screen readers
         resultsContainer.classList.remove('hidden');
+        summaryText.focus();
     }
 });
